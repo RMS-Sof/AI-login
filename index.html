@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .hidden { display: none; }
+    .quiz-box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+    button { padding: 8px 15px; margin-top: 10px; cursor: pointer; }
+    #timer { font-weight: bold; color: darkred; }
+  </style>
+</head>
+<body>
+  <!-- Login Page -->
+  <div id="loginPage" class="quiz-box">
+    <h2>Login to AI Quiz - Designed by Prof. Rahul M. Samant</h2>
+    <input type="password" id="password" placeholder="Enter Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+
+  <!-- Quiz Page -->
+  <div id="quizPage" class="quiz-box hidden">
+    <h2>AI Quiz</h2>
+    <p id="timer">Time left: 30s</p>
+    <p id="question"></p>
+    <div id="choices"></div>
+    <button onclick="nextQuestion()">Next</button>
+  </div>
+
+  <!-- Result Page -->
+  <div id="resultPage" class="quiz-box hidden">
+    <h2>Quiz Finished!</h2>
+    <p id="score"></p>
+    <p id="grade"></p>
+  </div>
+
+<script>
+// Question bank (sample 12; expand to 100)
+const questions = [
+ {q:"Which of the following best defines Artificial Narrow Intelligence (ANI)?", c:["AI specialized in one task","AI with human-level cognition","AI surpassing human intelligence","AI with emotions"], a:0},
+  {q:"What is the ultimate goal of Artificial General Intelligence (AGI)?", c:["Perform single tasks","Mimic human-level intelligence","Play chess better than humans","Translate languages only"], a:1},
+  {q:"Which term describes AI that could potentially exceed human intelligence?", c:["ANI","AGI","ASI","ML"], a:2},
+  {q:"Which algorithm is most associated with game tree search in AI?", c:["Genetic Algorithm","Minimax Algorithm","K-means","PageRank"], a:1},
+  {q:"Which strategy is used to deal with uncertainty in AI?", c:["Fuzzy Logic","Sorting","Greedy Algorithm","Recursion"], a:0},
+  {q:"In reinforcement learning, the agent learns by:", c:["Imitating others","Receiving rewards and punishments","Using fixed rules","Human coding each step"], a:1},
+  {q:"Which of these is a heuristic search strategy?", c:["Breadth-first search","Depth-first search","A* algorithm","Merge Sort"], a:2},
+  {q:"Which AI concept is closest to human creativity and self-improvement?", c:["ANI","AGI","ASI","CNN"], a:2},
+  {q:"Which machine learning paradigm is most related to classification tasks?", c:["Unsupervised Learning","Supervised Learning","Reinforcement Learning","Evolutionary Algorithms"], a:1},
+  {q:"Which of the following is NOT an AI search strategy?", c:["Hill Climbing","Simulated Annealing","Merge Sort","Alpha-Beta Pruning"], a:2},
+
+  {q:"Turing Test is primarily used to:", c:["Check AI speed","Check AI intelligence against humans","Check AI memory","Check AI storage capacity"], a:1},
+  {q:"Which optimization algorithm mimics natural selection?", c:["A* Search","Gradient Descent","Genetic Algorithm","Bayesian Networks"], a:2},
+  {q:"Which logic is often used to handle incomplete knowledge in AI?", c:["Boolean Logic","Propositional Logic","Fuzzy Logic","Predicate Logic"], a:2},
+  {q:"Which is an example of ANI?", c:["Siri","A human-level robot","AI surpassing humans","A conscious machine"], a:0},
+  {q:"Which is a challenge in building AGI?", c:["Limited data","Human-level adaptability","Low computing power","Too much labeled data"], a:1},
+  {q:"What is a main risk associated with ASI?", c:["Memory overflow","Unemployment","Human extinction risk","Slow computation"], a:2},
+  {q:"What does Alpha-Beta pruning improve?", c:["Sorting speed","Search efficiency in minimax trees","Clustering accuracy","Neural net training"], a:1},
+  {q:"Which algorithm is probabilistic?", c:["Hill Climbing","Simulated Annealing","Merge Sort","Quick Sort"], a:1},
+  {q:"Which search is uninformed?", c:["A*","Greedy","BFS","Best-first"], a:2},
+  {q:"Which model is used for reasoning under uncertainty?", c:["Bayesian Networks","Decision Trees","Sorting Algorithm","Stack"], a:0},
+
+  {q:"Which approach is bottom-up in AI?", c:["Rule-based systems","Neural networks","Expert systems","Game trees"], a:1},
+  {q:"Which is a strong indicator of AGI progress?", c:["Specialized chess AI","Transfer learning","Sorting efficiency","Cache memory"], a:1},
+  {q:"What does knowledge representation involve?", c:["Storing raw data","Encoding facts and rules","Sorting arrays","Counting operations"], a:1},
+  {q:"Which of the following is an informed search?", c:["Breadth-first","Depth-first","A*","DFS"], a:2},
+  {q:"Which is an example of heuristic?", c:["Exact algorithm","Rule of thumb","Sorting function","Fixed step"], a:1},
+  {q:"In AI planning, STRIPS refers to:", c:["A search tree","A planning language","A sorting algorithm","A neural net"], a:1},
+  {q:"Monte Carlo methods are based on:", c:["Deterministic rules","Random sampling","Sorting lists","Graph traversals"], a:1},
+  {q:"What is the Chinese Room argument against?", c:["Symbolic AI understanding","Neural networks","Sorting","Data mining"], a:0},
+  {q:"Which concept is essential for AGI to learn abstract tasks?", c:["Feature extraction","Commonsense reasoning","Sorting","Caching"], a:1},
+  {q:"Which algorithm avoids local maxima by random jumps?", c:["Hill Climbing","Simulated Annealing","DFS","Greedy"], a:1},
+
+  {q:"Which of these is a probabilistic AI model?", c:["Genetic Algorithm","Bayesian Network","Decision Tree","DFS"], a:1},
+  {q:"What does the Minimax algorithm assume?", c:["One player","Optimal opponent","Random moves","No payoff"], a:1},
+  {q:"Which is an application of ANI?", c:["Medical diagnosis AI","Conscious AI","AGI-level robot","Superintelligence"], a:0},
+  {q:"Which concept deals with AI surpassing humans in creativity?", c:["ANI","AGI","ASI","DFS"], a:2},
+  {q:"Which is the basis of machine perception?", c:["Sensors","Sorting algorithms","Neural memory","Caches"], a:0},
+  {q:"Which AI model uses neurons and layers?", c:["Decision Trees","Neural Networks","Sorting Arrays","DFS"], a:1},
+  {q:"Which is a core part of Natural Language Processing?", c:["Parsing","Sorting","Cache lookup","Matrix inversion"], a:0},
+  {q:"What is backpropagation used for?", c:["Training neural networks","Sorting data","Graph traversal","Rule-based logic"], a:0},
+  {q:"Which logic programming language is used in AI?", c:["C","Prolog","Java","Pascal"], a:1},
+  {q:"Which algorithm is best for shortest path?", c:["Dijkstra","DFS","BFS","Bubble Sort"], a:0},
+
+  {q:"Which is a drawback of ANI?", c:["Lack of generalization","Too general","Exceeding human IQ","Self-awareness"], a:0},
+  {q:"Which concept suggests recursive self-improvement?", c:["ANI","AGI","ASI","DFS"], a:2},
+  {q:"What is an agent in AI?", c:["A program that perceives and acts","A sorting function","A CPU","A file"], a:0},
+  {q:"What does rationality in AI mean?", c:["Acting randomly","Acting to maximize goal achievement","Acting slowly","Acting like a human"], a:1},
+  {q:"Which search is optimal but memory-heavy?", c:["DFS","BFS","Greedy","Hill climbing"], a:1},
+  {q:"What is overfitting in AI?", c:["Model generalizes well","Model memorizes training data","Model learns slowly","Model skips training"], a:1},
+  {q:"Which term is related to AGI tests?", c:["IQ Test","Turing Test","Sorting Test","Speed Test"], a:1},
+  {q:"Which is a knowledge-based system?", c:["Expert System","Sorting","DFS","Greedy"], a:0},
+  {q:"Which algorithm avoids recomputation in dynamic programming?", c:["Memoization","DFS","Sorting","Hill climbing"], a:0},
+  {q:"What is the danger of ASI?", c:["Too weak AI","Uncontrollable power","Slow execution","Poor sorting"], a:1},
+
+  {q:"Which model represents decision-making under uncertainty?", c:["Markov Decision Process","Sorting Algorithm","DFS","Cache"], a:0},
+  {q:"Which type of AI lacks self-awareness?", c:["ANI","AGI","ASI","All"], a:0},
+  {q:"Which is a stochastic optimization algorithm?", c:["Gradient Descent","Genetic Algorithm","Bubble Sort","DFS"], a:1},
+  {q:"Which term refers to human-like learning?", c:["AGI","ANI","Sorting","DFS"], a:0},
+  {q:"What does AlphaGo use?", c:["Neural Nets + Monte Carlo Tree Search","Sorting","BFS","DFS"], a:0},
+  {q:"Which AI strategy is based on biological evolution?", c:["Genetic Algorithms","Greedy","Sorting","DFS"], a:0},
+  {q:"Which logic represents true/false only?", c:["Boolean","Fuzzy","Probabilistic","Modal"], a:0},
+  {q:"Which AI system stores facts + inference rules?", c:["Expert System","DFS","Sorting","Neural Net"], a:0},
+  {q:"Which algorithm uses admissible heuristics?", c:["A*","DFS","Sorting","Bubble Sort"], a:0},
+  {q:"Which is a main feature of AGI?", c:["Domain generality","Domain narrowness","Sorting ability","Cache use"], a:0},
+
+  {q:"Which learning uses rewards?", c:["Reinforcement","Supervised","Unsupervised","Sorting"], a:0},
+  {q:"Which algorithm inspired by metallurgy?", c:["Simulated Annealing","Genetic Algorithm","DFS","Sorting"], a:0},
+  {q:"Which AI branch involves perception?", c:["Computer Vision","Sorting","DFS","Cache"], a:0},
+  {q:"Which model represents knowledge graphically?", c:["Semantic Network","Sorting","DFS","Cache"], a:0},
+  {q:"Which is a limitation of expert systems?", c:["Lack of adaptability","Too creative","Self-aware","Sorting issues"], a:0},
+  {q:"Which learning uses clustering?", c:["Unsupervised","Supervised","Reinforcement","Sorting"], a:0},
+  {q:"Which AI algorithm is greedy but not always optimal?", c:["Greedy Best-First Search","DFS","Sorting","Bubble Sort"], a:0},
+  {q:"Which is a real-world ANI example?", c:["Spam filter","Self-aware AI","Superintelligence","Human clone"], a:0},
+  {q:"Which is required for ASI emergence?", c:["Recursive self-improvement","Sorting","Cache","DFS"], a:0},
+  {q:"Which AI strategy is probabilistic and graphical?", c:["Bayesian Networks","DFS","Sorting","Greedy"], a:0},
+
+  {q:"What is the focus of symbolic AI?", c:["Manipulation of symbols","Neural layers","Sorting arrays","DFS"], a:0},
+  {q:"Which algorithm explores all possibilities layer by layer?", c:["BFS","DFS","Greedy","A*"], a:0},
+  {q:"Which learning type has labeled data?", c:["Supervised","Unsupervised","Reinforcement","Sorting"], a:0},
+  {q:"Which learning type uses unlabeled data?", c:["Unsupervised","Supervised","Reinforcement","Sorting"], a:0},
+  {q:"Which strategy avoids exploring irrelevant branches?", c:["Alpha-Beta Pruning","DFS","Sorting","Cache"], a:0},
+  {q:"Which is a type of AI planning algorithm?", c:["STRIPS","Sorting","DFS","Greedy"], a:0},
+  {q:"Which problem is NP-hard?", c:["Travelling Salesman","Sorting","DFS","Addition"], a:0},
+  {q:"Which logic type allows degrees of truth?", c:["Fuzzy","Boolean","Predicate","Sorting"], a:0},
+  {q:"Which algorithm uses exploration vs exploitation tradeoff?", c:["Multi-armed Bandit","DFS","Sorting","Greedy"], a:0},
+  {q:"Which AI task involves speech understanding?", c:["NLP","Sorting","DFS","Cache"], a:0},
+
+  {q:"Which test evaluates natural language conversation?", c:["Turing Test","Sorting Test","DFS Test","IQ Test"], a:0},
+  {q:"Which algorithm ensures global optima probabilistically?", c:["Simulated Annealing","DFS","Sorting","Greedy"], a:0},
+  {q:"Which learning involves trial and error?", c:["Reinforcement","Supervised","Unsupervised","Sorting"], a:0},
+  {q:"Which algorithm uses backtracking?", c:["DFS","Sorting","Greedy","Bubble Sort"], a:0},
+  {q:"Which type of AI cannot transfer knowledge?", c:["ANI","AGI","ASI","All"], a:0},
+  {q:"Which AI term implies machine sentience?", c:["ASI","ANI","AGI","DFS"], a:0},
+  {q:"Which AI system maps inputs to outputs without logic?", c:["Neural Networks","Sorting","DFS","Cache"], a:0},
+  {q:"Which concept means machines can reason?", c:["Logic-based AI","Sorting","DFS","Cache"], a:0},
+  {q:"Which search is complete but not optimal?", c:["DFS","Sorting","BFS","Greedy"], a:0},
+  {q:"Which algorithm is designed for pathfinding in games?", c:["A*","Sorting","DFS","Greedy"], a:0},
+
+  {q:"Which learning approach is used in clustering?", c:["Unsupervised","Supervised","Reinforcement","Sorting"], a:0},
+  {q:"Which AI concept relates to bounded rationality?", c:["Heuristics","Sorting","DFS","Cache"], a:0},
+  {q:"Which algorithm is nature-inspired?", c:["Genetic Algorithm","Sorting","DFS","Bubble Sort"], a:0},
+  {q:"Which strategy combines exploration & exploitation?", c:["Reinforcement Learning","Sorting","DFS","Greedy"], a:0},
+  {q:"Which AI approach encodes expert knowledge?", c:["Rule-based System","Sorting","DFS","Neural Net"], a:0},
+  {q:"Which AI task requires semantic parsing?", c:["NLP","Sorting","DFS","Cache"], a:0},
+  {q:"Which concept differentiates ANI from AGI?", c:["Generality","Sorting","DFS","Cache"], a:0},
+  {q:"Which optimization method uses gradient updates?", c:["Gradient Descent","Sorting","DFS","Greedy"], a:0},
+  {q:"Which AI reasoning approach is data-driven?", c:["Inductive","Deductive","Sorting","Cache"], a:0},
+  {q:"Which approach is rule-driven?", c:["Deductive","Inductive","Sorting","DFS"], a:0}
+];
+
+// Pick 30 random questions from 100 (here 12 for demo)
+let selected = [];
+function selectRandomQuestions() {
+  const copy = [...questions];
+  while (selected.length < Math.min(30, questions.length)) {
+    const idx = Math.floor(Math.random() * copy.length);
+    selected.push(copy.splice(idx,1)[0]);
+  }
+}
+
+let current = 0, score = 0, timer, timeLeft = 30;
+
+function login() {
+  const pass = document.getElementById("password").value;
+  if(pass === "ituser123") {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("quizPage").classList.remove("hidden");
+    selectRandomQuestions();
+    showQuestion();
+  } else {
+    document.getElementById("loginError").innerText = "Wrong password!";
+  }
+}
+
+function showQuestion() {
+  if(current >= selected.length) {
+    endQuiz();
+    return;
+  }
+  document.getElementById("question").innerText = (current+1)+". "+selected[current].q;
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+  selected[current].c.forEach((choice,i)=>{
+    choicesDiv.innerHTML += `<label><input type='radio' name='choice' value='${i}'> ${choice}</label><br>`;
+  });
+  timeLeft = 30;
+  document.getElementById("timer").innerText = "Time left: "+timeLeft+"s";
+  clearInterval(timer);
+  timer = setInterval(countdown,1000);
+}
+
+function countdown(){
+  timeLeft--;
+  document.getElementById("timer").innerText = "Time left: "+timeLeft+"s";
+  if(timeLeft<=0){
+    nextQuestion();
+  }
+}
+
+function nextQuestion(){
+  clearInterval(timer);
+  const selectedOption = document.querySelector("input[name='choice']:checked");
+  if(selectedOption && parseInt(selectedOption.value)===selected[current].a){
+    score++;
+  }
+  current++;
+  showQuestion();
+}
+
+function endQuiz(){
+  document.getElementById("quizPage").classList.add("hidden");
+  document.getElementById("resultPage").classList.remove("hidden");
+  document.getElementById("score").innerText = "You scored "+score+" out of "+selected.length;
+  let grade = "F";
+  const percent = (score/selected.length)*100;
+  if(percent>=85) grade = "A";
+  else if(percent>=70) grade = "B";
+  else if(percent>=50) grade = "C";
+  else if(percent>=35) grade = "D";
+  document.getElementById("grade").innerText = "Your grade: "+grade;
+}
+</script>
+</body>
+</html>
